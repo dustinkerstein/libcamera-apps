@@ -24,10 +24,10 @@ bool Control::enableBuffer;
 
 ControlOutput::ControlOutput() : Output(), buf_(), framesBuffered_(0), framesWritten_(0)
 {
-	char * myfifo = new char [14];
-	strcpy(myfifo, "/home/pi/pipe");
-	mkfifo(myfifo, 0666);
-	std::cerr << "PIPE CREATED" << std::endl;
+	// char * myfifo = new char [14];
+	// strcpy(myfifo, "/home/pi/pipe");
+	// mkfifo(myfifo, 0666);
+	// std::cerr << "PIPE CREATED" << std::endl;
 }
 
 ControlOutput::~ControlOutput()
@@ -44,7 +44,7 @@ void ControlOutput::WriteOut()
 	{
 		while(framesWritten_ < framesBuffered_)
 		{
-			if (fwrite(buf_[framesWritten_], 18677760, 1, Control::pipe) != 1)
+			if (fwrite(buf_[framesWritten_], 18677760, 1, stdout) != 1)
 				std::cerr << "failed to write output bytes" << std::endl;
 			else
 			{
@@ -60,7 +60,7 @@ void ControlOutput::outputBuffer(void *mem, size_t size, int64_t timestamp_us, u
 	if (!Control::enableBuffer) 
 	{	
 		auto start = high_resolution_clock::now();
-		if (fwrite(mem, size, 1, Control::pipe) != 1)
+		if (fwrite(mem, size, 1, stdout) != 1)
 			throw std::runtime_error("failed to write output bytes");
 		else
 			framesWritten_++;
@@ -89,11 +89,11 @@ void ControlOutput::Reset()
 	last_timestamp_ = 0;
 	// if (Control::pipe)
 	// 	fclose(Control::pipe);
-	if (!Control::pipe) {
-		Control::pipe = fopen("/home/pi/pipe", "w");
-		std::cerr << "PIPE OPENED BY CONSUMER" << std::endl;
-	}
-	if (Control::mode == 2 && !Control::timestampsFile.empty())
+	// if (!Control::pipe) {
+	// 	Control::pipe = fopen("/home/pi/pipe", "w");
+	// 	std::cerr << "PIPE OPENED BY CONSUMER" << std::endl;
+	// }
+	if (!Control::timestampsFile.empty())
 	{
 		fp_timestamps_ = fopen(Control::timestampsFile.c_str(), "w");
 		if (!fp_timestamps_)
