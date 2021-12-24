@@ -32,7 +32,6 @@ int stillCapturedCount;
 int signal_received;
 std::string awbgains;
 std::unique_ptr<Output> output = std::unique_ptr<Output>(Output::Create());
-CompletedRequestPtr &completed_request;
 
 static void signal_handler(int signal_number)
 {
@@ -155,14 +154,6 @@ static void capture() {
 			std::cerr << "LIBCAMERA: FRAMEOUT or SIGUSR2 received,  CAPTURE MODE: " << Control::mode << ", CAPTURING: " << capturing << std::endl;
 			app.StopCamera();
 			app.StopEncoder();
-			if (Control::mode <= 1) {
-				libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
-				std::stringstream red;
-				std::stringstream blue;
-				red << std::fixed << std::setprecision(2) << gains[0];
-				blue << std::fixed << std::setprecision(2) << gains[1];
-				awbgains = red.str() + "," + blue.str();
-			}
 			break;
 		}
 		LibcameraEncoder::Msg msg = app.Wait();
@@ -170,8 +161,21 @@ static void capture() {
 			break;
 		else if (msg.type != LibcameraEncoder::MsgType::RequestComplete)
 			throw std::runtime_error("unrecognised message!");
-		&completed_request = std::get<CompletedRequestPtr>(msg.payload);
+		CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 		app.EncodeBuffer(completed_request, app.VideoStream());
+		if (Control::mode <= 1) {
+			auto start = high_resolution_clock::now();
+			std::cerr << "LIBCAMERA: SAVING AWBGAINS" << std::endl;
+			libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
+			std::stringstream red;
+			std::stringstream blue;
+			red << std::fixed << std::setprecision(2) << gains[0];
+			blue << std::fixed << std::setprecision(2) << gains[1];
+			awbgains = red.str() + "," + blue.str();
+			auto stop = high_resolution_clock::now();
+			auto duration = duration_cast<milliseconds>(stop - start);
+			std::cerr << "LIBCAMERA: SAVING AWBGAINS TOOK: " << duration.count() << std::endl;
+		}
 	}
 	switch(Control::mode) {
 		case 0:
