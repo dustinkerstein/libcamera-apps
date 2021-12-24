@@ -154,6 +154,7 @@ static void capture() {
 			std::cerr << "LIBCAMERA: FRAMEOUT or SIGUSR2 received,  CAPTURE MODE: " << Control::mode << ", CAPTURING: " << capturing << std::endl;
 			app.StopCamera();
 			app.StopEncoder();
+			LibcameraEncoder::Msg msg = app.Wait();
 			CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 			if (Control::mode <= 1) {
 				libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
