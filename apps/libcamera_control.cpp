@@ -154,6 +154,15 @@ static void capture() {
 			std::cerr << "LIBCAMERA: FRAMEOUT or SIGUSR2 received,  CAPTURE MODE: " << Control::mode << ", CAPTURING: " << capturing << std::endl;
 			app.StopCamera();
 			app.StopEncoder();
+			CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
+			if (Control::mode <= 1) {
+				libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
+				std::stringstream red;
+				std::stringstream blue;
+				red << std::fixed << std::setprecision(2) << gains[0];
+				blue << std::fixed << std::setprecision(2) << gains[1];
+				awbgains = red.str() + "," + blue.str();
+			}
 			break;
 		}
 		LibcameraEncoder::Msg msg = app.Wait();
@@ -163,15 +172,6 @@ static void capture() {
 			throw std::runtime_error("unrecognised message!");
 		CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 		app.EncodeBuffer(completed_request, app.VideoStream());
-		// SHOULD CHECK TIME COST OF THIS
-		if (Control::mode <= 1) {
-			libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
-			std::stringstream red;
-			std::stringstream blue;
-			red << std::fixed << std::setprecision(2) << gains[0];
-			blue << std::fixed << std::setprecision(2) << gains[1];
-			awbgains = red.str() + "," + blue.str();
-		}
 	}
 	switch(Control::mode) {
 		case 0:
