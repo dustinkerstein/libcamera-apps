@@ -166,7 +166,6 @@ static void capture() {
 		app.EncodeBuffer(completed_request, app.VideoStream());
 		if (Control::mode <= 1) {
 			auto start = high_resolution_clock::now();
-			std::cerr << "LIBCAMERA: SAVING AWBGAINS" << std::endl;
 			libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
 			std::stringstream red;
 			std::stringstream blue;
