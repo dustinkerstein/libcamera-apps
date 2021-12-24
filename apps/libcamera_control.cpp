@@ -145,11 +145,6 @@ static void capture() {
 	capturing = true;
 	for (unsigned int count = 0; ; count++)
 	{
-		LibcameraEncoder::Msg msg = app.Wait();
-		if (msg.type == LibcameraEncoder::MsgType::Quit)
-			break;
-		else if (msg.type != LibcameraEncoder::MsgType::RequestComplete)
-			throw std::runtime_error("unrecognised message!");
 		bool frameout = options->frames && count >= options->frames;
 		std::cerr << "LIBCAMERA: options->frames: " << options->frames << ", count: " << count << " frameout: " << frameout << std::endl;
 		if (frameout || signal_received == SIGUSR2)
@@ -161,6 +156,11 @@ static void capture() {
 			app.StopEncoder();
 			break;
 		}
+		LibcameraEncoder::Msg msg = app.Wait();
+		if (msg.type == LibcameraEncoder::MsgType::Quit)
+			break;
+		else if (msg.type != LibcameraEncoder::MsgType::RequestComplete)
+			throw std::runtime_error("unrecognised message!");
 		CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 		app.EncodeBuffer(completed_request, app.VideoStream());
 		// SHOULD CHECK TIME COST OF THIS
