@@ -20,10 +20,7 @@ using namespace std::chrono;
 
 ControlOutput::ControlOutput() : Output(), buf_(), framesBuffered_(0), framesWritten_(0)
 {
-	char * myfifo = new char [14];
-	strcpy(myfifo, "/home/pi/pipe");
-	mkfifo(myfifo, 0666);
-	std::cerr << "LIBCAMERA: PIPE CREATED" << std::endl;
+
 }
 
 ControlOutput::~ControlOutput()
@@ -83,11 +80,16 @@ void ControlOutput::Reset()
 	flags = 2;
 	state_ = WAITING_KEYFRAME;
 	last_timestamp_ = 0;
+	fp_ = nullptr;
 }
 
 void ControlOutput::Initialize()
 {
 	if (!fp_) {
+		char * myfifo = new char [14];
+		strcpy(myfifo, "/home/pi/pipe");
+		mkfifo(myfifo, 0666);
+		std::cerr << "LIBCAMERA: PIPE CREATED" << std::endl;
 		fp_ = fopen("/home/pi/pipe", "w");
 		std::cerr << "LIBCAMERA: PIPE OPENED BY CONSUMER" << std::endl;
 	}
