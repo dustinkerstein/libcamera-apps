@@ -189,29 +189,24 @@ static void capture() {
 	}
 	switch(Control::mode) {
 		case 0:
-			output->Reset();
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", VIDEO CAPTURE COUNT: " << Control::frames << std::endl;
 			std::system("pkill -f -SIGHUP camera_server.py");
 			std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
 			break;
 		case 1:
 			stillCapturedCount++;
-			if (signal_received == SIGUSR2)
-				output->Reset();
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", STILL CAPTURE COUNT: " << stillCapturedCount << ", TOTAL FRAMES REQUESTED: " << Control::frames << std::endl;
 			std::system("pkill -f -SIGHUP camera_server.py");
 			std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
 			break;
   		case 2:
   			output->WriteOut();
-  			output->Reset();
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", VIDEO CAPTURE COUNT: " << Control::frames << std::endl;
 			break;
 		case 3:
 			stillCapturedCount++;
 			if (stillCapturedCount == Control::frames) {
 				output->WriteOut();
-				output->Reset();
 			}
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", STILL CAPTURE COUNT: " << stillCapturedCount << ", TOTAL FRAMES REQUESTED: " << Control::frames << std::endl;
 			std::system("pkill -f -SIGUSR1 camera_server.py");
@@ -232,6 +227,7 @@ int main(int argc, char *argv[])
 		{
 			if (!capturing && signal_received == SIGHUP) {
 				signal_received = 0;
+				output->Reset();
 				std::cerr << "LIBCAMERA: READING PARAMETERS" << std::endl;
 				std::ifstream ifs("/home/pi/parameters.json");
 				std::string content((std::istreambuf_iterator<char>(ifs)),(std::istreambuf_iterator<char>()));
