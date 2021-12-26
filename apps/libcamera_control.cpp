@@ -179,16 +179,15 @@ static void capture() {
 	}
 	switch(Control::mode) {
 		case 0:
-			output->WriteOut();
 			output->Reset();
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", VIDEO CAPTURE COUNT: " << Control::frames << std::endl;
 			std::system("pkill -f -SIGHUP camera_server.py");
 			std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
 			break;
 		case 1:
-			output->WriteOut();
-			output->Reset();
 			stillCapturedCount++;
+			if (signal_received == SIGUSR2)
+				output->Reset();
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", STILL CAPTURE COUNT: " << stillCapturedCount << ", TOTAL FRAMES REQUESTED: " << Control::frames << std::endl;
 			std::system("pkill -f -SIGHUP camera_server.py");
 			std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
@@ -222,7 +221,6 @@ int main(int argc, char *argv[])
 		while (true) 
 		{
 			if (!capturing && signal_received == SIGHUP) {
-				signal_received = 0;
 				std::cerr << "LIBCAMERA: READING PARAMETERS" << std::endl;
 				std::ifstream ifs("/home/pi/parameters.json");
 				std::string content((std::istreambuf_iterator<char>(ifs)),(std::istreambuf_iterator<char>()));
@@ -237,30 +235,26 @@ int main(int argc, char *argv[])
 				capture();
 			} else if (capturing && Control::mode == 1) {
 				if (signal_received != SIGUSR2) {
-					signal_received = 0;
 					std::cerr << "LIBCAMERA: CAPTURE MODE 1 LOOPING" << std::endl;
 					capture();
 				} else if (signal_received == SIGUSR2) {
-					signal_received = 0;
 					capturing = false;
 					std::cerr << "LIBCAMERA: STOPPING MODE 1 CAPTURE" << std::endl;
 				} 
 			} else if (capturing && Control::mode == 3) {
 				if (signal_received == SIGUSR1 && stillCapturedCount < Control::frames) {
-					signal_received = 0;
 					std::cerr << "LIBCAMERA: CAPTURE MODE 3 LOOPING" << std::endl;
 					capture();
 				} else if (signal_received == SIGUSR2) {
-					signal_received = 0;
 					capturing = false;
 					std::cerr << "LIBCAMERA: STOPPING MODE 3 CAPTURE" << std::endl;
 				} else if (stillCapturedCount == Control::frames) {
-					signal_received = 0;
 					capturing = false;
 					std::cerr << "LIBCAMERA: MODE 3 CAPTURE COMPLTE AND EXITING LIBCAMERA-CONTROL" << std::endl;
 					break;
 				}
 			}
+			signal_received = 0;
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
