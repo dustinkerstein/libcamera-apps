@@ -31,7 +31,7 @@ char** global_argv;
 bool capturing;
 int stillCapturedCount;
 int signal_received;
-std::string awbgains;
+std::string awbgains = "0,0";
 std::unique_ptr<Output> output = std::unique_ptr<Output>(Output::Create());
 
 static void signal_handler(int signal_number)
@@ -48,28 +48,37 @@ static void configure() {
 	std::vector<std::string> args = {"/home/pi/GitHub/libcamera-apps/build/libcamera-control"};
 	switch(Control::mode) {
 		case 0:
-			args.push_back(std::string("--awb"));
-			args.push_back(parameters.at("awb").get<std::string>());
+			awbgains = "0,0";
 			break;
 		case 1:
 			args.push_back(std::string("--frames"));
 			args.push_back(parameters.at("frames").get<std::string>());
-			args.push_back(std::string("--awb"));
-			args.push_back(parameters.at("awb").get<std::string>());
+			if (stillCapturedCount == 0) {
+				awbgains = "0,0";
+			} else if (awbgains != "0,0") {
+				args.push_back(std::string("--awbgains"));
+				args.push_back(awbgains);
+			}
 			break;
 		case 2:
 			args.push_back(std::string("--frames"));
 			args.push_back(parameters.at("frames").get<std::string>());
-			args.push_back(std::string("--awbgains"));
-			args.push_back(awbgains);
+			if (awbgains != "0,0") {
+				args.push_back(std::string("--awbgains"));
+				args.push_back(awbgains);
+			}
 			break;
 		case 3:
 			args.push_back(std::string("--frames"));
 			args.push_back(std::string("1"));
-			args.push_back(std::string("--awbgains"));
-			args.push_back(awbgains);
+			if (awbgains != "0,0") {
+				args.push_back(std::string("--awbgains"));
+				args.push_back(awbgains);
+			}
 			break;
 	}
+	args.push_back(std::string("--awb"));
+	args.push_back(parameters.at("awb").get<std::string>());
 	args.push_back(std::string("--timeout"));
 	args.push_back(parameters.at("timeout").get<std::string>());
 	args.push_back(std::string("--shutter"));
@@ -119,6 +128,7 @@ static void capture() {
 	switch(Control::mode) {
 		case 0:
 			options->timeout = std::stoi(parameters.at("timeout").get<std::string>()); // THIS SHOULDN'T BE NECESSARY - HACK
+			awbgains = "0,0";
 			Control::enableBuffer = false;
 			break;
 		case 1:
