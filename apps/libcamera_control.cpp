@@ -174,16 +174,16 @@ static void capture() {
 		CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 		app.EncodeBuffer(completed_request, app.VideoStream());
 		if (Control::mode <= 1) {
-			auto start = high_resolution_clock::now();
+			// auto start = high_resolution_clock::now();
 			libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
 			std::stringstream red;
 			std::stringstream blue;
 			red << std::fixed << std::setprecision(2) << gains[0];
 			blue << std::fixed << std::setprecision(2) << gains[1];
 			awbgains = red.str() + "," + blue.str();
-			auto stop = high_resolution_clock::now();
-			auto duration = duration_cast<milliseconds>(stop - start);
-			std::cerr << "LIBCAMERA: SAVING AWBGAINS TOOK: " << duration.count() << std::endl;
+			// auto stop = high_resolution_clock::now();
+			// auto duration = duration_cast<milliseconds>(stop - start);
+			// std::cerr << "LIBCAMERA: SAVING AWBGAINS TOOK: " << duration.count() << std::endl;
 		}
 	}
 	switch(Control::mode) {

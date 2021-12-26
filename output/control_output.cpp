@@ -35,12 +35,17 @@ void ControlOutput::WriteOut()
 	fp_timestamps_ = nullptr;
 	if (Control::enableBuffer) 
 	{
+		bool snowed = false;
 		while(framesWritten_ < framesBuffered_)
 		{
-			if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
+			if (Control::mode == 3 && framesWritten_ == 0 && !snowed) {
+				std::cerr << "LIBCAMERA: Generating Snow" << std::endl;
+				std::system("gst-launch-1.0 videotestsrc pattern=snow num-buffers=10 ! video/x-raw,width=4096,height=3040,framerate=30/1 ! filesink location=~/pipe");
+				std::cerr << "LIBCAMERA: Snow Generation Complete" << std::endl;
+				snowed = true;
+			} else if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
 				std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
-			else
-			{
+			else {
 				std::cerr << "LIBCAMERA: Frames Written: " << (framesWritten_+1) << ", Frames Buffered: " << framesBuffered_ << std::endl;
 				framesWritten_++;
 			}
