@@ -109,6 +109,8 @@ static void configure() {
 	args.push_back(parameters.at("denoise").get<std::string>());
 	args.push_back(std::string("--nopreview"));
 	// args.push_back(std::string("on"));
+	args.push_back(std::string("--roi"));
+	args.push_back(std::string("0,0,0.99408284023,1"));
 	std::vector<char *> argv;
 	for(std::string &s: args) argv.push_back(&s[0]);
 	argv.push_back(NULL);
