@@ -128,7 +128,6 @@ static void capture() {
 	switch(Control::mode) {
 		case 0:
 			options->timeout = std::stoi(parameters.at("timeout").get<std::string>()); // THIS SHOULDN'T BE NECESSARY - HACK
-			awbgains = "0,0";
 			Control::enableBuffer = false;
 			break;
 		case 1:
