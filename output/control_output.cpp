@@ -39,7 +39,7 @@ void ControlOutput::WriteOut()
 		while(framesWritten_ < framesBuffered_)
 		{
 			if (Control::mode == 3 && framesWritten_ == 0 && !padded) {
-				for (int i = 0; i < 11; i++) { // HACK
+				for (int i = 0; i < 10; i++) {
 					if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
 						std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
 					else

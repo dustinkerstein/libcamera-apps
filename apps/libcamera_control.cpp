@@ -262,7 +262,6 @@ int main(int argc, char *argv[])
 					signal_received = 0;
 					capturing = false;
 					std::cerr << "LIBCAMERA: MODE 3 CAPTURE COMPLTE AND EXITING LIBCAMERA-CONTROL" << std::endl;
-					break;
 				}
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
