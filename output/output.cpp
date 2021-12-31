@@ -8,13 +8,19 @@
 #include <cinttypes>
 #include <stdexcept>
 
+#include "control_output.hpp"
 #include "circular_output.hpp"
 #include "file_output.hpp"
 #include "net_output.hpp"
 #include "output.hpp"
+#include "core/control.hpp"
+
+int Control::mode;
+bool Control::enableBuffer;
+std::string Control::timestampsFile;
 
 Output::Output(VideoOptions const *options)
-	: options_(options), state_(WAITING_KEYFRAME), fp_timestamps_(nullptr), time_offset_(0), last_timestamp_(0)
+	: options_(options), fp_timestamps_(nullptr), flags(0), state_(WAITING_KEYFRAME), last_timestamp_(0), time_offset_(0)
 {
 	if (!options->save_pts.empty())
 	{
@@ -25,6 +31,12 @@ Output::Output(VideoOptions const *options)
 	}
 
 	enable_ = !options->pause;
+}
+
+Output::Output()
+	: fp_timestamps_(nullptr), flags(0), state_(WAITING_KEYFRAME), last_timestamp_(0), time_offset_(0)
+{
+	enable_ = true;
 }
 
 Output::~Output()
@@ -38,10 +50,30 @@ void Output::Signal()
 	enable_ = !enable_;
 }
 
+void Output::WriteOut() 
+{
+
+}
+
+void Output::Reset()
+{
+
+}
+
+void Output::Initialize()
+{
+
+}
+
+void Output::ConfigTimestamp()
+{
+
+}
+
 void Output::OutputReady(void *mem, size_t size, int64_t timestamp_us, bool keyframe)
 {
 	// When output is enabled, we may have to wait for the next keyframe.
-	uint32_t flags = keyframe ? FLAG_KEYFRAME : FLAG_NONE;
+	flags = keyframe ? FLAG_KEYFRAME : FLAG_NONE;
 	if (!enable_)
 		state_ = DISABLED;
 	else if (state_ == DISABLED)
@@ -78,4 +110,9 @@ Output *Output::Create(VideoOptions const *options)
 		return new FileOutput(options);
 	else
 		return new Output(options);
+}
+
+Output *Output::Create()
+{
+	return new ControlOutput();
 }
