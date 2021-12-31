@@ -148,7 +148,7 @@ static void capture() {
   	std::cerr << "LIBCAMERA: CAPTURE READY - MODE: " << Control::mode << std::endl;
 	app.SetEncodeOutputReadyCallback(std::bind(&Output::OutputReady, output.get(), _1, _2, _3, _4));
 	app.OpenCamera();
-	app.ConfigureVideo();
+	app.ConfigureVideo(LibcameraEncoder::FLAG_VIDEO_JPEG_COLOURSPACE);
 	app.StartEncoder();
 	app.StartCamera();
 	std::cerr << "LIBCAMERA: CAPTURE START" << std::endl;
