@@ -53,12 +53,7 @@ static void configure() {
 		case 1:
 			args.push_back(std::string("--frames"));
 			args.push_back(parameters.at("frames").get<std::string>());
-			if (stillCapturedCount == 0) {
-				awbgains = "0,0";
-			} else if (awbgains != "0,0") {
-				args.push_back(std::string("--awbgains"));
-				args.push_back(awbgains);
-			}
+			awbgains = "0,0";
 			break;
 		case 2:
 			args.push_back(std::string("--frames"));
