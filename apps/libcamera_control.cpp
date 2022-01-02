@@ -48,6 +48,8 @@ static void configure() {
 	std::vector<std::string> args = {"/home/pi/GitHub/libcamera-apps/build/libcamera-control"};
 	switch(Control::mode) {
 		case 0:
+			args.push_back(std::string("--frames"));
+			args.push_back(std::string("4294967295"));
 			awbgains = "0,0";
 			break;
 		case 1:
@@ -127,6 +129,7 @@ static void capture() {
 	output->Initialize();
 	switch(Control::mode) {
 		case 0:
+			options->frames = 4294967295;
 			options->timeout = std::stoi(parameters.at("timeout").get<std::string>()); // THIS SHOULDN'T BE NECESSARY - HACK
 			Control::enableBuffer = false;
 			break;
