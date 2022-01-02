@@ -99,10 +99,10 @@ void ControlOutput::Initialize()
 {
 	if (!fp_) {
 		char * myfifo = new char [14];
-		strcpy(myfifo, "/home/pi/pipe");
+		strcpy(myfifo, "/dev/shm/pipe");
 		mkfifo(myfifo, 0666);
 		std::cerr << "LIBCAMERA: PIPE CREATED" << std::endl;
-		fp_ = fopen("/home/pi/pipe", "w");
+		fp_ = fopen("/dev/shm/pipe", "w");
 		std::cerr << "LIBCAMERA: PIPE OPENED BY CONSUMER" << std::endl;
 	}
 }
