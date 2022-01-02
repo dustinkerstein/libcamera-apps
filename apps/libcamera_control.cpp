@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 				signal_received = 0;
 				output->Reset();
 				std::cerr << "LIBCAMERA: READING PARAMETERS" << std::endl;
-				std::ifstream ifs("/home/pi/parameters.json");
+				std::ifstream ifs("/dev/shm/parameters.json");
 				std::string content((std::istreambuf_iterator<char>(ifs)),(std::istreambuf_iterator<char>()));
 				parameters = json::parse(content);
 				std::cerr << std::setw(4) << parameters << std::endl;
