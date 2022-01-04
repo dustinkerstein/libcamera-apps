@@ -238,6 +238,7 @@ int main(int argc, char *argv[])
 				capture();
 			} else if (signal_received == SIGUSR2) {
 				signal_received = 0;
+				capturing = false;
 				std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
 				std::system("pkill -f -SIGHUP camera_server.py");
 			} else if (capturing && Control::mode == 1) {
