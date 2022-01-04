@@ -38,10 +38,6 @@ static void signal_handler(int signal_number)
 {
 	signal_received = signal_number;
 	std::cerr << "LIBCAMERA: Received signal " << signal_number << std::endl;
-	if (!capturing && signal_received == 12) {
-		std::system("pkill -f -SIGHUP camera_server.py");
-		std::cerr << "LIBCAMERA: SENDING FIRST SIGHUP, CAPTUREREADY" << std::endl;
-	}
 }
 
 static void configure() {
@@ -192,14 +188,10 @@ static void capture() {
 	switch(Control::mode) {
 		case 0:
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", VIDEO CAPTURE COUNT: " << Control::frames << std::endl;
-			std::system("pkill -f -SIGHUP camera_server.py");
-			std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
 			break;
 		case 1:
 			stillCapturedCount++;
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", STILL CAPTURE COUNT: " << stillCapturedCount << ", TOTAL FRAMES REQUESTED: " << Control::frames << std::endl;
-			std::system("pkill -f -SIGHUP camera_server.py");
-			std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
 			break;
   		case 2:
   			std::system("pkill -f -SIGUSR2 camera_server.py");
@@ -244,6 +236,10 @@ int main(int argc, char *argv[])
 				stillCapturedCount = 0;
 				std::cerr << "LIBCAMERA: CAPTURE MODE: " << Control::mode << std::endl;
 				capture();
+			} else if (signal_received == SIGUSR2) {
+				signal_received = 0;
+				std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
+				std::system("pkill -f -SIGHUP camera_server.py");
 			} else if (capturing && Control::mode == 1) {
 				if (signal_received != SIGUSR2) {
 					signal_received = 0;
@@ -266,7 +262,7 @@ int main(int argc, char *argv[])
 				} else if (stillCapturedCount == Control::frames) {
 					signal_received = 0;
 					capturing = false;
-					std::cerr << "LIBCAMERA: MODE 3 CAPTURE COMPLTE AND EXITING LIBCAMERA-CONTROL" << std::endl;
+					std::cerr << "LIBCAMERA: MODE 3 CAPTURE COMPLETE AND EXITING LIBCAMERA-CONTROL" << std::endl;
 				}
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
