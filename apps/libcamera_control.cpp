@@ -202,12 +202,14 @@ static void capture() {
 			std::cerr << "LIBCAMERA: SENDING SIGHUP, CAPTUREREADY" << std::endl;
 			break;
   		case 2:
+  			std::system("pkill -f -SIGUSR2 camera_server.py");
   			output->WriteOut();
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", VIDEO CAPTURE COUNT: " << Control::frames << std::endl;
 			break;
 		case 3:
 			stillCapturedCount++;
 			if (stillCapturedCount == Control::frames) {
+				std::system("pkill -f -SIGUSR2 camera_server.py");
 				output->WriteOut();
 			}
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", STILL CAPTURE COUNT: " << stillCapturedCount << ", TOTAL FRAMES REQUESTED: " << Control::frames << std::endl;
