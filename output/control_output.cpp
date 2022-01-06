@@ -64,14 +64,14 @@ void ControlOutput::outputBuffer(void *mem, size_t size, int64_t timestamp_us, u
 {
 	if (!Control::enableBuffer) 
 	{	
-		auto start = high_resolution_clock::now();
+		// auto start = high_resolution_clock::now();
 		if (fwrite(mem, size, 1, fp_) != 1)
 			throw std::runtime_error("failed to write output bytes");
 		else
 			framesWritten_++;
-		auto stop = high_resolution_clock::now();
-		auto duration = duration_cast<milliseconds>(stop - start);
-		std::cerr << "LIBCAMERA: Write took: " << duration.count() << "ms" << std::endl;
+		// auto stop = high_resolution_clock::now();
+		// auto duration = duration_cast<milliseconds>(stop - start);
+		// std::cerr << "LIBCAMERA: Write took: " << duration.count() << "ms" << std::endl;
 	}
 	else 
 	{
