@@ -16,9 +16,17 @@
 using namespace std::chrono;
 
 // We're going to align the frames within the buffer to friendly byte boundaries
-// static constexpr int ALIGN = 16; // power of 2, please
+static constexpr int ALIGN = 16; // power of 2, please
 
-ControlOutput::ControlOutput() : Output(), buf_(), framesBuffered_(0), framesWritten_(0)
+struct Header
+{
+	unsigned int length;
+	bool keyframe;
+	int64_t timestamp;
+};
+static_assert(sizeof(Header) % ALIGN == 0, "Header should have aligned size");
+
+ControlOutput::ControlOutput() : Output(), cb_(), framesBuffered_(0), framesWritten_(0)
 {
 
 }
@@ -35,28 +43,56 @@ void ControlOutput::WriteOut()
 	fp_timestamps_ = nullptr;
 	if (Control::enableBuffer) 
 	{
-		bool padded = false;
-		while(framesWritten_ < framesBuffered_)
+		// We do have to skip to the first I frame before dumping stuff to disk. If there are
+		// no I frames you will get nothing. Caveat emptor, methinks.
+		unsigned int total = 0, frames = 0;
+		bool seen_keyframe = false;
+		Header header;
+		FILE *fp = fp_; // can't capture a class member in a lambda
+		while (!cb_.Empty()) // TBD - NEED TO HANDLE PADDED FRAMES!!!!!!
 		{
-			if (Control::mode == 3 && framesWritten_ == 0 && !padded) {
-				for (int i = 0; i < 10; i++) {
-					if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
-						std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
-					else
-					{
-						std::cerr << "LIBCAMERA: PADDING FRAMES" << std::endl;
-						framesWritten_++;
-					}
-				}
-				framesWritten_ = 0;
-				padded = true;
-			} else if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
-				std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
-			else {
-				std::cerr << "LIBCAMERA: Frames Written: " << (framesWritten_+1) << ", Frames Buffered: " << framesBuffered_ << std::endl;
-				framesWritten_++;
+			uint8_t *dst = (uint8_t *)&header;
+			cb_.Read(
+				[&dst](void *src, int n) {
+					memcpy(dst, src, n);
+					dst += n;
+				},
+				sizeof(header));
+			seen_keyframe |= header.keyframe;
+			if (seen_keyframe)
+			{
+				cb_.Read([fp](void *src, int n) { fwrite(src, 1, n, fp); }, header.length);
+				cb_.Skip((ALIGN - header.length) & (ALIGN - 1));
+				total += header.length;
+				frames++;
 			}
+			else
+				cb_.Skip((header.length + ALIGN - 1) & ~(ALIGN - 1));
 		}
+		fclose(fp_);
+		std::cerr << "Wrote " << total << " bytes (" << frames << " frames)" << std::endl;
+		// bool padded = false;
+		// while(framesWritten_ < framesBuffered_)
+		// {
+		// 	if (Control::mode == 3 && framesWritten_ == 0 && !padded) {
+		// 		for (int i = 0; i < 10; i++) {
+		// 			if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
+		// 				std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
+		// 			else
+		// 			{
+		// 				std::cerr << "LIBCAMERA: PADDING FRAMES" << std::endl;
+		// 				framesWritten_++;
+		// 			}
+		// 		}
+		// 		framesWritten_ = 0;
+		// 		padded = true;
+		// 	} else if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
+		// 		std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
+		// 	else {
+		// 		std::cerr << "LIBCAMERA: Frames Written: " << (framesWritten_+1) << ", Frames Buffered: " << framesBuffered_ << std::endl;
+		// 		framesWritten_++;
+		// 	}
+		// }
 	}
 }
 
@@ -77,7 +113,29 @@ void ControlOutput::outputBuffer(void *mem, size_t size, int64_t timestamp_us, u
 	{
 		framesBuffered_++;
 		auto start = high_resolution_clock::now();
-		memcpy(&buf_[framesBuffered_ - 1], mem, size); // NEED TO PAD/ALIGN TO 4096
+		// memcpy(&buf_[framesBuffered_ - 1], mem, size); // NEED TO PAD/ALIGN TO 4096
+
+		// First make sure there's enough space.
+		int pad = (ALIGN - size) & (ALIGN - 1);
+		while (size + pad + sizeof(Header) > cb_.Available())
+		{
+			if (cb_.Empty())
+				throw std::runtime_error("circular buffer too small");
+			Header header;
+			uint8_t *dst = (uint8_t *)&header;
+			cb_.Read(
+				[&dst](void *src, int n) {
+					memcpy(dst, src, n);
+					dst += n;
+				},
+				sizeof(header));
+			cb_.Skip((header.length + ALIGN - 1) & ~(ALIGN - 1));
+		}
+		Header header = { static_cast<unsigned int>(size), !!(flags & FLAG_KEYFRAME), timestamp_us };
+		cb_.Write(&header, sizeof(header));
+		cb_.Write(mem, size);
+		cb_.Pad(pad);
+
 		auto stop = high_resolution_clock::now();
 		auto duration = duration_cast<milliseconds>(stop - start);
 		std::cerr << "LIBCAMERA: Copy took: " << duration.count() << "ms, Frames Buffered: " << framesBuffered_ << std::endl;
