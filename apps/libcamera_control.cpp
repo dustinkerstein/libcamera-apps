@@ -152,6 +152,8 @@ static void capture() {
 	app.StartCamera();
 	std::cerr << "LIBCAMERA: CAPTURE START" << std::endl;
 	capturing = true;
+	if (Control::mode == 2)
+		std::system("pkill -f -SIGUSR1 camera_server.py");
 	for (unsigned int count = 0; ; count++)
 	{
 		bool frameout = options->frames && count >= options->frames;
