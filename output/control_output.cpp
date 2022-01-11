@@ -49,8 +49,15 @@ void ControlOutput::WriteOut()
 		bool seen_keyframe = false;
 		Header header;
 		FILE *fp = fp_; // can't capture a class member in a lambda
-		while (!cb_.Empty()) // TBD - NEED TO HANDLE PADDED FRAMES!!!!!!
+		bool padded = false;
+		while (!cb_.Empty())
 		{
+			if (Control::mode == 3 && frames == 10 && !padded) {
+				padded = true;
+				// frames = 0;
+				// total = 0;
+				cb_.ResetReadPtr();
+			}
 			uint8_t *dst = (uint8_t *)&header;
 			cb_.Read(
 				[&dst](void *src, int n) {
@@ -71,28 +78,6 @@ void ControlOutput::WriteOut()
 		}
 		fclose(fp_);
 		std::cerr << "Wrote " << total << " bytes (" << frames << " frames)" << std::endl;
-		// bool padded = false;
-		// while(framesWritten_ < framesBuffered_)
-		// {
-		// 	if (Control::mode == 3 && framesWritten_ == 0 && !padded) {
-		// 		for (int i = 0; i < 10; i++) {
-		// 			if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
-		// 				std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
-		// 			else
-		// 			{
-		// 				std::cerr << "LIBCAMERA: PADDING FRAMES" << std::endl;
-		// 				framesWritten_++;
-		// 			}
-		// 		}
-		// 		framesWritten_ = 0;
-		// 		padded = true;
-		// 	} else if (fwrite(buf_[framesWritten_], 18677760, 1, fp_) != 1)
-		// 		std::cerr << "LIBCAMERA: failed to write output bytes" << std::endl;
-		// 	else {
-		// 		std::cerr << "LIBCAMERA: Frames Written: " << (framesWritten_+1) << ", Frames Buffered: " << framesBuffered_ << std::endl;
-		// 		framesWritten_++;
-		// 	}
-		// }
 	}
 }
 
