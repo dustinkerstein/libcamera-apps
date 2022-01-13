@@ -162,7 +162,7 @@ static void capture() {
 		{
 			if (Control::mode == 0 || Control::mode == 2)
 				capturing = false;
-			std::cerr << "LIBCAMERA: STOPPING CAPTURE, signal_received: " << signal_received << ", frameout: " << frameout << ",  CAPTURE MODE: " << Control::mode << ", CAPTURING: " << capturing << std::endl;
+			std::cerr << "LIBCAMERA: STOPPING CAPTURE, signal_received: " << signal_received << ", frameout: " << frameout << ", count: " << count << ", frames: " << options->frames << ",  CAPTURE MODE: " << Control::mode << ", CAPTURING: " << capturing << std::endl;
 			app.StopCamera();
 			app.StopEncoder();
 			break;
