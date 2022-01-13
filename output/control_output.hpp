@@ -64,8 +64,8 @@ class ControlOutput : public Output
 
 	private:
 		ControlBuffer cb_;
-		// std::array<std::byte[18677760], 360> buf_;
 		std::atomic_uint framesBuffered_;
 		std::atomic_uint framesWritten_;
 		FILE *fp_;
+		FILE *gp_;
 };
