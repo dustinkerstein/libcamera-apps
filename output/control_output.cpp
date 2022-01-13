@@ -143,25 +143,22 @@ void ControlOutput::Reset()
 
 void ControlOutput::Initialize()
 {
-	if (Control::mode < 3) {
-		if (!fp_) {
-			char * myfifo = new char [14];
-			strcpy(myfifo, "/dev/shm/pipe");
-			mkfifo(myfifo, 0666);
-			std::cerr << "LIBCAMERA: PIPE CREATED" << std::endl;
-			fp_ = fopen("/dev/shm/pipe", "w");
-			std::cerr << "LIBCAMERA: PIPE OPENED BY CONSUMER" << std::endl;
-		}
+	if (!fp_) {
+		char * myfifo = new char [14];
+		strcpy(myfifo, "/dev/shm/pipe");
+		mkfifo(myfifo, 0666);
+		std::cerr << "LIBCAMERA: PIPE CREATED" << std::endl;
+		fp_ = fopen("/dev/shm/pipe", "w");
+		std::cerr << "LIBCAMERA: PIPE OPENED BY CONSUMER" << std::endl;
 	}
-	else {
-		if (!gp_) {
-			char * myfifo2 = new char [17];
-			strcpy(myfifo2, "/dev/shm/smspipe");
-			mkfifo(myfifo2, 0666);
-			std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE CREATED" << std::endl;
-			gp_ = fopen("/dev/shm/smspipe", "w");
-			std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE OPENED BY CONSUMER" << std::endl;
-		}
+
+	if (Control::mode == 3 && !gp_) {
+		char * myfifo2 = new char [17];
+		strcpy(myfifo2, "/dev/shm/smspipe");
+		mkfifo(myfifo2, 0666);
+		std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE CREATED" << std::endl;
+		gp_ = fopen("/dev/shm/smspipe", "w");
+		std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE OPENED BY CONSUMER" << std::endl;
 	}
 }
 
