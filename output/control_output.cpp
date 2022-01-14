@@ -123,8 +123,8 @@ void ControlOutput::outputBuffer(void *mem, size_t size, int64_t timestamp_us, u
 		auto duration = duration_cast<milliseconds>(stop - start);
 		std::cerr << "LIBCAMERA: Copy took: " << duration.count() << "ms, Frames Buffered: " << framesBuffered_ << std::endl;
 
-		// if (Control::mode == 3 && fwrite(mem, size, 1, gp_) != 1)
-		// 	throw std::runtime_error("failed to write output bytes for SMS dual preview");
+		if (Control::mode == 3 && fwrite(mem, size, 1, gp_) != 1)
+			throw std::runtime_error("failed to write output bytes for SMS dual preview");
 	}
 }
 
@@ -137,7 +137,7 @@ void ControlOutput::Reset()
 	state_ = WAITING_KEYFRAME;
 	last_timestamp_ = 0;
 	fp_ = nullptr;
-	// gp_ = nullptr;
+	gp_ = nullptr;
 }
 
 void ControlOutput::Initialize()
@@ -151,14 +151,14 @@ void ControlOutput::Initialize()
 		std::cerr << "LIBCAMERA: PIPE OPENED BY CONSUMER" << std::endl;
 	}
 
-	// if (Control::mode == 3 && !gp_) {
-	// 	char * myfifo2 = new char [17];
-	// 	strcpy(myfifo2, "/dev/shm/smspipe");
-	// 	mkfifo(myfifo2, 0666);
-	// 	std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE CREATED" << std::endl;
-	// 	gp_ = fopen("/dev/shm/smspipe", "w");
-	// 	std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE OPENED BY CONSUMER" << std::endl;
-	// }
+	if (Control::mode == 3 && !gp_) {
+		char * myfifo2 = new char [17];
+		strcpy(myfifo2, "/dev/shm/smspipe");
+		mkfifo(myfifo2, 0666);
+		std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE CREATED" << std::endl;
+		gp_ = fopen("/dev/shm/smspipe", "w");
+		std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE OPENED BY CONSUMER" << std::endl;
+	}
 }
 
 void ControlOutput::ConfigTimestamp()
