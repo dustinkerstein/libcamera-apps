@@ -12,8 +12,9 @@
 class ControlBuffer
 {
 public:
-	ControlBuffer() : size_(6723993600), buf_(6723993600), rptr_(0), wptr_(0) {}
-	void ResetReadPtr() { rptr_ = 0; }
+	ControlBuffer() : size_(6723993600), buf_(6723993600), rptr_(0), wptr_(0), prev_rptr_(0) {}
+	void SaveReadPtr() { prev_rptr_ = rptr_; }
+	void ResetReadPtr() { rptr_ = prev_rptr_; }
 	bool Empty() const { return rptr_ == wptr_; }
 	size_t Available() const { return (size_ - wptr_ + rptr_) % size_ - 1; }
 	void Skip(unsigned int n) { rptr_ = (rptr_ + n) % size_; }
@@ -46,7 +47,7 @@ public:
 private:
 	const size_t size_;
 	std::vector<uint8_t> buf_;
-	size_t rptr_, wptr_;
+	size_t rptr_, wptr_, prev_rptr_;
 };
 
 class ControlOutput : public Output

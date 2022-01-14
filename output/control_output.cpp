@@ -50,12 +50,11 @@ void ControlOutput::WriteOut()
 		Header header;
 		FILE *fp = fp_; // can't capture a class member in a lambda
 		bool padded = false;
+		cb_.SaveReadPtr();
 		while (!cb_.Empty())
 		{
 			if (Control::mode == 3 && frames == 10 && !padded) {
 				padded = true;
-				// frames = 0;
-				// total = 0;
 				cb_.ResetReadPtr();
 			}
 			uint8_t *dst = (uint8_t *)&header;
