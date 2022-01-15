@@ -187,6 +187,8 @@ static void capture() {
 			// std::cerr << "LIBCAMERA: SAVING AWBGAINS TOOK: " << duration.count() << std::endl;
 		}
 	}
+	if (signal_received == SIGUSR2)
+		return;
 	switch(Control::mode) {
 		case 0:
 			std::cerr << "LIBCAMERA: CAPTURE END" << ", CAPTURE MODE: " << Control::mode << " AWBGAINS: " << awbgains << ", PREVIEW VIDEO CAPTURE COUNT: " << Control::frames << std::endl;
