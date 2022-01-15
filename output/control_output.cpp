@@ -151,11 +151,14 @@ void ControlOutput::Initialize()
 		std::cerr << "LIBCAMERA: PIPE OPENED BY CONSUMER" << std::endl;
 	}
 
-	if (Control::mode == 3 && !gp_) {
+	if (!gp_) {
 		char * myfifo2 = new char [17];
 		strcpy(myfifo2, "/dev/shm/smspipe");
 		mkfifo(myfifo2, 0666);
 		std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE CREATED" << std::endl;
+	}
+	
+	if (Control::mode == 3) {
 		gp_ = fopen("/dev/shm/smspipe", "w");
 		std::cerr << "LIBCAMERA: SMS DUAL PREVIEW PIPE OPENED BY CONSUMER" << std::endl;
 	}
