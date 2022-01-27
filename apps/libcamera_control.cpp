@@ -29,6 +29,7 @@ int pid;
 int global_argc;
 char** global_argv;
 bool capturing;
+bool previewStreamLive;
 int stillCapturedCount;
 int signal_received;
 std::string awbgains = "0,0";
@@ -175,6 +176,10 @@ static void capture() {
 		CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 		app.EncodeBuffer(completed_request, app.VideoStream());
 		if (Control::mode <= 1) {
+			if (!previewStreamLive) {
+				previewStreamLive = true;
+				std::system("pkill -f -SIGUSR2 camera_server.py");
+			}
 			// auto start = high_resolution_clock::now();
 			libcamera::Span<const float> gains = completed_request->metadata.get(libcamera::controls::ColourGains);
 			std::stringstream red;
@@ -238,6 +243,7 @@ int main(int argc, char *argv[])
 				Control::frames = std::stoi(parameters.at("frames").get<std::string>());
 				Control::timestampsFile = parameters.at("timestamps_file");
 				stillCapturedCount = 0;
+				previewStreamLive = false;
 				std::cerr << "LIBCAMERA: CAPTURE MODE: " << Control::mode << std::endl;
 				capture();
 			} else if (signal_received == SIGUSR2) {
