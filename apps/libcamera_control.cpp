@@ -176,8 +176,9 @@ static void capture() {
 		CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 		app.EncodeBuffer(completed_request, app.VideoStream());
 		if (Control::mode <= 1) {
-			if (!previewStreamLive) {
+			if ((count > 0 || stillCapturedCount > 0) && !previewStreamLive) {
 				previewStreamLive = true;
+				std::cerr << "LIBCAMERA: PREVIEW STREAM LIVE, count: " << count << ", stillCapturedCount: " << stillCapturedCount << ", mode: " << Control::mode << std::endl;
 				std::system("pkill -f -SIGUSR2 camera_server.py");
 			}
 			// auto start = high_resolution_clock::now();
