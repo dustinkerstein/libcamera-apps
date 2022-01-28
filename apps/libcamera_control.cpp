@@ -175,7 +175,7 @@ static void capture() {
 			throw std::runtime_error("unrecognised message!");
 		CompletedRequestPtr &completed_request = std::get<CompletedRequestPtr>(msg.payload);
 		app.EncodeBuffer(completed_request, app.VideoStream());
-		if (Control::mode !=2) {
+		if (Control::mode <= 1) {
 			if ((count > 0 || stillCapturedCount > 0) && !previewStreamLive) {
 				previewStreamLive = true;
 				std::cerr << "LIBCAMERA: PREVIEW STREAM LIVE, count: " << count << ", stillCapturedCount: " << stillCapturedCount << ", mode: " << Control::mode << std::endl;
